@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roll the Quest | Gamified Life</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --primary: #0085FF;
+            --accent: #FFCC5D;
+            --bg-dark: #121212;
+            --card-dark: rgba(32, 32, 32, 0.6);
+            --border-dark: rgba(255, 255, 255, 0.12);
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f8fafc;
+            color: #202020;
+            transition: background-color 0.3s, color 0.3s;
+            min-height: 100vh;
+        }
+
+        body.dark-mode {
+            background-color: var(--bg-dark);
+            color: #ffffff;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(32, 32, 32, 0.08);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+        }
+
+        .dark-mode .glass-card {
+            background: var(--card-dark);
+            border-color: var(--border-dark);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        .category-btn {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .category-btn.active {
+            background-color: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .quest-roll-anim {
+            animation: roll 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        @keyframes roll {
+            0% { transform: scale(0.9) rotateX(90deg); opacity: 0; }
+            100% { transform: scale(1) rotateX(0); opacity: 1; }
+        }
+
+        .progress-bar-fill {
+            transition: width 1s linear;
+        }
+
+        .kuse-branding {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            opacity: 0.8;
+            transition: all 0.3s;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .kuse-branding:hover {
+            opacity: 1;
+            color: var(--primary);
+        }
+
+        .kuse-branding svg {
+            height: 1.2em;
+        }
+
+        /* Neumorphic button effect */
+        .btn-neu {
+            box-shadow: 4px 4px 10px rgba(0,0,0,0.1), -4px -4px 10px rgba(255,255,255,0.8);
+        }
+
+        .dark-mode .btn-neu {
+            box-shadow: 4px 4px 12px rgba(0,0,0,0.5), -2px -2px 8px rgba(255,255,255,0.05);
+        }
+
+        .pulse {
+            animation: pulse-ring 1.25s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+
+        @keyframes pulse-ring {
+            0% { transform: scale(.95); box-shadow: 0 0 0 0 rgba(0, 133, 255, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(0, 133, 255, 0); }
+            100% { transform: scale(.95); box-shadow: 0 0 0 0 rgba(0, 133, 255, 0); }
+        }
+    </style>
+</head>
+<body class="dark-mode">
+    <div class="max-w-lg mx-auto px-4 py-8 pb-24">
+        <!-- Header -->
+        <header class="flex justify-between items-center mb-8">
+            <div>
+                <h1 class="text-2xl font-bold tracking-tight">Roll the Quest</h1>
+                <p class="text-sm opacity-60">Level up your reality</p>
+            </div>
+            <button id="themeToggle" class="p-2 rounded-full glass-card hover:bg-opacity-100 transition-all">
+                <svg id="moonIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                <svg id="sunIcon" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M16.242 17.657l.707.707M6.343 6.343l.707-.707M12 5a7 7 0 000 14 7 7 0 000-14z"></path></svg>
+            </button>
+        </header>
+
+        <!-- Stats Grid -->
+        <div class="grid grid-cols-2 gap-4 mb-8">
+            <div class="glass-card rounded-[20px] p-4 flex flex-col items-center justify-center">
+                <span class="text-xs uppercase tracking-widest opacity-50 mb-1">Streak</span>
+                <div class="text-3xl font-bold text-[#FFCC5D]" id="streakCount">0</div>
+                <div class="flex gap-1 mt-2">
+                    <div class="w-1.5 h-1.5 rounded-full bg-[#FFCC5D]"></div>
+                    <div class="w-1.5 h-1.5 rounded-full bg-white/20"></div>
+                    <div class="w-1.5 h-1.5 rounded-full bg-white/20"></div>
+                </div>
+            </div>
+            <div class="glass-card rounded-[20px] p-4 flex flex-col items-center justify-center">
+                <span class="text-xs uppercase tracking-widest opacity-50 mb-1">Level</span>
+                <div class="text-3xl font-bold text-[#0085FF]" id="userLevel">1</div>
+                <div class="w-full bg-white/10 h-1 rounded-full mt-3 overflow-hidden">
+                    <div id="levelProgress" class="bg-[#0085FF] h-full" style="width: 30%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Category Filters -->
+        <div class="mb-8 overflow-x-auto pb-2">
+            <div class="flex gap-3 min-w-max">
+                <button class="category-btn active glass-card px-4 py-2 rounded-full text-sm font-medium" data-cat="All">All</button>
+                <button class="category-btn glass-card px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2" data-cat="Explore">
+                    Explore
+                </button>
+                <button class="category-btn glass-card px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2" data-cat="Taste">
+                    Taste
+                </button>
+                <button class="category-btn glass-card px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2" data-cat="Move">
+                    Move
+                </button>
+                <button class="category-btn glass-card px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2" data-cat="Create">
+                    Create
+                </button>
+                <button class="category-btn glass-card px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2" data-cat="Connect">
+                    Connect
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Action Area -->
+        <div id="mainDisplay" class="min-h-[340px] flex flex-col">
+            <!-- Initial Roll State -->
+            <div id="rollState" class="flex-1 flex flex-col items-center justify-center space-y-6">
+                <div class="relative">
+                    <div class="absolute inset-0 bg-[#0085FF] blur-3xl opacity-20 rounded-full"></div>
+                    <button id="rollBtn" class="relative w-32 h-32 rounded-full bg-[#202020] dark:bg-white text-white dark:text-[#202020] font-bold text-xl flex items-center justify-center shadow-2xl hover:scale-105 active:scale-95 transition-transform pulse">
+                        ROLL
+                    </button>
+                </div>
+                <p class="text-center opacity-60 max-w-[240px]">Tap to generate a new micro-quest for your day.</p>
+            </div>
+
+            <!-- Quest Card State -->
+            <div id="questState" class="hidden flex-1 quest-roll-anim">
+                <div class="glass-card rounded-[24px] p-6 border-2 border-[#0085FF]/30 h-full flex flex-col">
+                    <div class="flex justify-between items-start mb-4">
+                        <span id="questTag" class="px-3 py-1 rounded-lg bg-[#0085FF]/20 text-[#0085FF] text-xs font-bold uppercase tracking-wider">Explore</span>
+                        <span id="questDuration" class="text-xs opacity-50">15 MINS</span>
+                    </div>
+                    <h3 id="questTitle" class="text-2xl font-bold mb-3 leading-tight">Visit a local park you've never walked in.</h3>
+                    <p id="questDesc" class="text-sm opacity-70 mb-8 flex-1 italic">"The world is full of magic things, patiently waiting for our senses to grow sharper."</p>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <button id="skipBtn" class="rounded-[12px] bg-[#EEEEEE] dark:bg-white/10 text-[#727272] px-4 py-3 font-semibold hover:bg-[#e2e2e2] transition-colors">Skip</button>
+                        <button id="acceptBtn" class="rounded-[12px] bg-[#202020] dark:bg-white text-white dark:text-[#202020] px-4 py-3 font-semibold hover:bg-[#4D4D4D] dark:hover:bg-gray-200 transition-colors">Accept</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Active Quest Timer State -->
+            <div id="timerState" class="hidden flex-1">
+                <div class="glass-card rounded-[24px] p-6 border-2 border-[#FFCC5D]/40">
+                    <div class="text-center mb-6">
+                        <h4 class="text-xs uppercase tracking-[0.2em] opacity-50 mb-2">Quest in Progress</h4>
+                        <div id="timerDisplay" class="text-5xl font-mono font-bold">15:00</div>
+                    </div>
+                    
+                    <div class="w-full bg-black/10 dark:bg-white/10 h-3 rounded-full overflow-hidden mb-8">
+                        <div id="timerProgress" class="bg-[#FFCC5D] h-full transition-all duration-1000" style="width: 100%"></div>
+                    </div>
+
+                    <div class="space-y-3">
+                        <button id="completeBtn" class="w-full rounded-[12px] bg-[#0085FF] text-white px-4 py-4 font-bold text-lg hover:bg-[#0074e0] shadow-lg">MARK COMPLETE</button>
+                        <button id="abandonBtn" class="w-full text-xs opacity-40 hover:opacity-100 transition-opacity">Abandon Quest</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- History Section -->
+        <section class="mt-12">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-lg">Today's History</h3>
+                <span id="historyCount" class="text-xs opacity-50">0 Completed</span>
+            </div>
+            <div id="historyList" class="space-y-3">
+                <!-- History Items go here -->
+                <div class="text-center py-8 opacity-30 italic text-sm border-2 border-dashed border-white/10 rounded-xl">
+                    No quests completed yet today...
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer / Branding -->
+        <footer class="mt-16 flex flex-col items-center gap-6">
+            <a href="https://kuse.ai" class="kuse-branding" target="_blank">
+                <span>made with</span>
+                <svg viewBox="0,0,160,44" xmlns="http://www.w3.org/2000/svg"><path d="m.01,20.65C-.43,8.25,9.3-2.03,22.04.34,34.78,2.72,43.29,8.32,43.29,22.9s-8.66,19.01-22.03,20.3C7.9,44.5.46,33.05.01,20.65z" fill="currentColor"/><path fill-rule="evenodd" clip-rule="evenodd" d="m146.76,7.94c8.07,0,13.24,6.15,13.24,14.58v1.39h-20.75c.45,4.05,3.51,7.37,8.57,7.37,2.62,0,5.73-1.05,7.62-2.94l2.67,3.83c-2.67,2.55-6.62,3.88-10.9,3.88-8.07,0-14.08-5.6-14.08-14.08,0-7.76,5.67-14.02,13.63-14.02zm0,4.77c-5.01,0-7.29,3.83-7.57,7.1h15.13c-.11-3.16-2.28-7.1-7.57-7.1z" fill="currentColor"/><path d="m86.64,24.49c0,4.15,2.39,6.84,6.84,6.84,4.4,0,6.84-2.69,6.84-6.84V8.55h5.37v16.33c0,6.7-4.06,11.14-12.21,11.14-8.21,0-12.21-4.5-12.21-11.09V8.55h5.37v15.94zm32.99-16.55c4.49,0,8.06,1.47,10.6,3.86l-2.59,3.81c-2.05-2-5.28-3.08-8.06-3.08-2.88,0-4.84,1.37-4.84,3.32,0,1.91,2.64,2.54,5.81,3.27,4.59,1.08,10.26,2.4,10.26,8.46,0,4.94-3.76,8.41-11.14,8.41-4.98,0-8.94-1.76-11.24-4.11l2.54-4.11c1.86,1.91,5.18,3.67,8.84,3.67,3.91,0,5.57-1.66,5.57-3.62,0-2.3-2.88-2.98-6.21-3.76-4.54-1.08-9.87-2.3-9.87-8.06,0-4.5,4.2-8.06,10.31-8.06zM60.79,20.82,71.44,8.55h6.5L66.46,21.26,78.82,35.44h-6.5l-9.28-11.1-2.25,2.49v8.6h-5.33V8.55h5.33v12.27z" fill="currentColor"/></svg>
+            </a>
+        </footer>
+    </div>
+
+    <!-- Core Scripts -->
+    <script>
+        // Quest Data Fallbacks
+        const QUEST_DATABASE = {
+            Explore: [
+                { title: `Walk 5 blocks in a new direction`, desc: `Discover a street or alley you've never paid attention to.`, time: 10 },
+                { title: `Find the tallest tree nearby`, desc: `Observe it for 2 minutes and notice the wildlife.`, time: 15 },
+                { title: `Visit a neighborhood library`, desc: `Find one book on a topic you know nothing about.`, time: 30 }
+            ],
+            Taste: [
+                { title: `Drink a glass of water slowly`, desc: `Focus entirely on the sensation and hydration.`, time: 5 },
+                { title: `Eat a seasonal fruit`, desc: `Try a fruit you haven't had in at least 3 months.`, time: 10 },
+                { title: `Visit a local bakery`, desc: `Try their most popular item and savor every bite.`, time: 20 }
+            ],
+            Move: [
+                { title: `Do 20 jumping jacks`, desc: `Get your heart rate up and feel the energy flow.`, time: 5 },
+                { title: `Hold a plank for 1 minute`, desc: `Focus on your core and your breathing.`, time: 5 },
+                { title: `Take a 15-minute power walk`, desc: `Walk briskly and swing your arms.`, time: 15 }
+            ],
+            Create: [
+                { title: `Sketch something on your desk`, desc: `Don't worry about quality, just capture lines.`, time: 10 },
+                { title: `Write a 6-word story`, desc: `Express a whole world in just six words.`, time: 5 },
+                { title: `Take 3 artistic photos`, desc: `Look for interesting shadows or textures near you.`, time: 15 }
+            ],
+            Connect: [
+                { title: `Text a friend a compliment`, desc: `Tell them something you genuinely admire about them.`, time: 5 },
+                { title: `Smile at a stranger`, desc: `A small gesture can brighten someone's day.`, time: 5 },
+                { title: `Call a relative for 10 mins`, desc: `Check in on someone you haven't spoken to lately.`, time: 15 }
+            ]
+        };
+
+        // State Management
+        let currentCategory = `All`;
+        let currentQuest = null;
+        let timerInterval = null;
+        let secondsRemaining = 0;
+        let totalSeconds = 0;
+        let streak = parseInt(localStorage.getItem(`questStreak`) || `0`);
+        let xp = parseInt(localStorage.getItem(`questXP`) || `0`);
+        let history = JSON.parse(localStorage.getItem(`questHistory`) || `[]`);
+
+        // DOM Elements
+        const themeToggle = document.getElementById(`themeToggle`);
+        const moonIcon = document.getElementById(`moonIcon`);
+        const sunIcon = document.getElementById(`sunIcon`);
+        const rollBtn = document.getElementById(`rollBtn`);
+        const rollState = document.getElementById(`rollState`);
+        const questState = document.getElementById(`questState`);
+        const timerState = document.getElementById(`timerState`);
+        const skipBtn = document.getElementById(`skipBtn`);
+        const acceptBtn = document.getElementById(`acceptBtn`);
+        const completeBtn = document.getElementById(`completeBtn`);
+        const abandonBtn = document.getElementById(`abandonBtn`);
+        const timerDisplay = document.getElementById(`timerDisplay`);
+        const timerProgress = document.getElementById(`timerProgress`);
+        const streakCount = document.getElementById(`streakCount`);
+        const userLevel = document.getElementById(`userLevel`);
+        const levelProgress = document.getElementById(`levelProgress`);
+        const historyList = document.getElementById(`historyList`);
+        const historyCount = document.getElementById(`historyCount`);
+
+        // Initialization
+        function init() {
+            updateStats();
+            renderHistory();
+            
+            // Category click events
+            document.querySelectorAll(`.category-btn`).forEach(btn => {
+                btn.addEventListener(`click`, () => {
+                    document.querySelectorAll(`.category-btn`).forEach(b => b.classList.remove(`active`));
+                    btn.classList.add(`active`);
+                    currentCategory = btn.getAttribute(`data-cat`);
+                });
+            });
+
+            // Theme Toggle
+            themeToggle.addEventListener(`click`, () => {
+                document.body.classList.toggle(`dark-mode`);
+                const isDark = document.body.classList.contains(`dark-mode`);
+                moonIcon.classList.toggle(`hidden`, isDark);
+                sunIcon.classList.toggle(`hidden`, !isDark);
+            });
+
+            rollBtn.addEventListener(`click`, rollQuest);
+            skipBtn.addEventListener(`click`, rollQuest);
+            acceptBtn.addEventListener(`click`, startQuest);
+            completeBtn.addEventListener(`click`, finishQuest);
+            abandonBtn.addEventListener(`click`, () => switchState(`roll`));
+        }
+
+        function rollQuest() {
+            // Animation reset
+            questState.classList.remove(`quest-roll-anim`);
+            void questState.offsetWidth; // trigger reflow
+            questState.classList.add(`quest-roll-anim`);
+
+            let pool = [];
+            if (currentCategory === `All`) {
+                Object.values(QUEST_DATABASE).forEach(catPool => pool.push(...catPool));
+            } else {
+                pool = QUEST_DATABASE[currentCategory];
+            }
+
+            const rand = Math.floor(Math.random() * pool.length);
+            currentQuest = { ...pool[rand], category: findCategory(pool[rand].title) };
+            
+            // Update UI
+            document.getElementById(`questTag`).textContent = currentQuest.category;
+            document.getElementById(`questDuration`).textContent = `${currentQuest.time} MINS`;
+            document.getElementById(`questTitle`).textContent = currentQuest.title;
+            document.getElementById(`questDesc`).textContent = currentQuest.desc;
+
+            switchState(`quest`);
+        }
+
+        function findCategory(title) {
+            for (const [cat, items] of Object.entries(QUEST_DATABASE)) {
+                if (items.some(i => i.title === title)) return cat;
+            }
+            return `General`;
+        }
+
+        function switchState(state) {
+            rollState.classList.add(`hidden`);
+            questState.classList.add(`hidden`);
+            timerState.classList.add(`hidden`);
+
+            if (state === `roll`) rollState.classList.remove(`hidden`);
+            if (state === `quest`) questState.classList.remove(`hidden`);
+            if (state === `timer`) timerState.classList.remove(`hidden`);
+        }
+
+        function startQuest() {
+            secondsRemaining = currentQuest.time * 60;
+            totalSeconds = secondsRemaining;
+            updateTimerDisplay();
+            switchState(`timer`);
+
+            timerInterval = setInterval(() => {
+                secondsRemaining--;
+                updateTimerDisplay();
+                
+                const progress = (secondsRemaining / totalSeconds) * 100;
+                timerProgress.style.width = `${progress}%`;
+
+                if (secondsRemaining <= 0) {
+                    clearInterval(timerInterval);
+                    // Automatic complete or alert could go here
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const mins = Math.floor(secondsRemaining / 60);
+            const secs = secondsRemaining % 60;
+            timerDisplay.textContent = `${mins.toString().padStart(2, `0`)}:${secs.toString().padStart(2, `0`)}`;
+        }
+
+        function finishQuest() {
+            clearInterval(timerInterval);
+            
+            // Update Data
+            streak++;
+            xp += 100;
+            
+            const completion = {
+                title: currentQuest.title,
+                category: currentQuest.category,
+                time: new Date().toLocaleTimeString([], { hour: `2-digit`, minute: `2-digit` }),
+                timestamp: Date.now()
+            };
+
+            history.unshift(completion);
+            if (history.length > 5) history.pop();
+
+            localStorage.setItem(`questStreak`, streak);
+            localStorage.setItem(`questXP`, xp);
+            localStorage.setItem(`questHistory`, JSON.stringify(history));
+
+            updateStats();
+            renderHistory();
+            switchState(`roll`);
+            
+            // Celebration effect
+            alert(`Quest Completed! +100 XP`);
+        }
+
+        function updateStats() {
+            streakCount.textContent = streak;
+            const level = Math.floor(xp / 500) + 1;
+            const progress = ((xp % 500) / 500) * 100;
+            
+            userLevel.textContent = level;
+            levelProgress.style.width = `${progress}%`;
+        }
+
+        function renderHistory() {
+            historyCount.textContent = `${history.length} Completed`;
+            
+            if (history.length === 0) {
+                historyList.innerHTML = `<div class="text-center py-8 opacity-30 italic text-sm border-2 border-dashed border-white/10 rounded-xl">No quests completed yet today...</div>`;
+                return;
+            }
+
+            historyList.innerHTML = history.map(item => `
+                <div class="glass-card p-4 rounded-xl flex items-center justify-between border-l-4 border-l-[#0085FF]">
+                    <div>
+                        <h4 class="font-bold text-sm">${item.title}</h4>
+                        <div class="flex items-center gap-2 mt-1">
+                            <span class="text-[10px] opacity-40 uppercase tracking-wider">${item.category}</span>
+                            <span class="text-[10px] opacity-20">•</span>
+                            <span class="text-[10px] opacity-40">${item.time}</span>
+                        </div>
+                    </div>
+                    <div class="text-[#0085FF]">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                    </div>
+                </div>
+            `).join(``);
+        }
+
+        init();
+    </script>
+    <script src="https://cdn.kuse.ai/sdk.prd.js"></script>
+</body>
+</html></html>
